@@ -3,540 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contract Renewal Command Center</title>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Contract Renewal Intelligence Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* DASHBOARD STYLING */
-        :root {
-            --bg-body: #f4f6f8;
-            --bg-card: #ffffff;
-            --text-primary: #344767;
-            --text-secondary: #7b809a;
-            --danger: #ea0606;
-            --warning: #f59e0b;
-            --success: #10b981;
-            --info: #3b82f6;
-        }
-
-        body {
-            background-color: var(--bg-body);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-primary);
-            padding-bottom: 50px;
-        }
-
-        /* HEADER */
-       .dashboard-header {
-            background: #fff;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        /* CARD COMPONENT */
-       .card-dashboard {
-            background: var(--bg-card);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            padding: 24px;
-            height: 100%;
-            transition: transform 0.2s;
-            border: 0;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+       .chart-container { position: relative; width: 100%; height: 300px; max-height: 400px; margin: 0 auto; }
+       .chart-container-lg { position: relative; width: 100%; height: 400px; max-height: 500px; margin: 0 auto; }
+       .custom-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+       .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+       .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+       .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* KPI STYLES */
-       .kpi-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-bottom: 16px;
+        /* Loading Spinner */
+       .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
         }
-       .kpi-blue { background-color: #e3f2fd; color: var(--info); }
-       .kpi-green { background-color: #d1fae5; color: var(--success); }
-       .kpi-red { background-color: #fee2e2; color: var(--danger); }
-       .kpi-yellow { background-color: #fef3c7; color: var(--warning); }
-
-       .kpi-value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: var(--text-primary);
-        }
-
-       .kpi-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* CHART CONTAINER */
-       .chart-wrapper {
-            min-height: 500px;
-            position: relative;
-        }
-
-        /* TABLE STYLING */
-        #contractsTable thead th {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            font-weight: 700;
-            border-bottom: 2px solid #edf2f7;
-        }
-        
-        /* STATUS BADGES */
-       .badge-status {
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-       .bg-critical { background-color: #fee2e2; color: #991b1b; }
-       .bg-warning { background-color: #fef3c7; color: #92400e; }
-       .bg-good { background-color: #d1fae5; color: #065f46; }
-       .bg-expired { background-color: #e5e7eb; color: #374151; }
-
-        /* CUSTOM TOOLTIP */
-       .apexcharts-tooltip-custom {
-            background: #1f2937!important;
-            border: 1px solid #1f2937!important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            border-radius: 6px;
-            color: #fff;
-            overflow: hidden;
-            pointer-events: none;
-        }
-       .tooltip-header {
-            background: #111827;
-            padding: 10px 14px;
-            font-weight: 700;
-            font-size: 13px;
-            border-bottom: 1px solid #374151;
-        }
-       .tooltip-body {
-            padding: 12px 14px;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-       .tooltip-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-        }
-       .tooltip-val { font-weight: 600; color: #e5e7eb; }
-       .tooltip-lbl { color: #9ca3af; }
-
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-    <header class="dashboard-header">
-        <div class="container-fluid px-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-1 fw-bold"><i class="fa-solid fa-file-contract me-2 text-primary"></i>Renewal Command Center</h4>
-                    <p class="mb-0 text-muted small">Visual Analytics for Contract Lifecycle Management</p>
-                </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <div class="d-inline-flex align-items-center bg-white border rounded p-2 shadow-sm">
-                        <i class="fa-solid fa-upload text-muted ms-2 me-2"></i>
-                        <input type="file" id="csvInput" accept=".csv" class="form-control form-control-sm border-0" style="width: 250px;">
-                        <button class="btn btn-sm btn-primary ms-2" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Report</button>
+    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-indigo-600 font-bold text-xl mr-8">ContractScope</span>
+                    <div class="flex items-center space-x-2">
+                        <label class="block text-sm font-medium text-gray-700 mr-2">Upload Data:</label>
+                        <input type="file" id="csv-upload" accept=".csv" class="block w-full text-sm text-slate-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-indigo-50 file:text-indigo-700
+                          hover:file:bg-indigo-100
+                        "/>
+                        <div class="loader" id="loading-spinner"></div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </header>
-
-    <div class="container-fluid px-4">
-        
-        <div class="row g-4 mb-4">
-            <div class="col-xl-3 col-md-6">
-                <div class="card-dashboard">
-                    <div class="kpi-icon kpi-blue"><i class="fa-solid fa-sack-dollar"></i></div>
-                    <div class="kpi-value" id="kpi-total-value">-</div>
-                    <div class="kpi-label">Total Contract Value (Active)</div>
-                </div>
-            </div>
-            
-            <div class="col-xl-3 col-md-6">
-                <div class="card-dashboard">
-                    <div class="kpi-icon kpi-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div class="kpi-value" id="kpi-risk-value">-</div>
-                    <div class="kpi-label">Value at Risk (< 90 Days)</div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-                <div class="card-dashboard">
-                    <div class="kpi-icon kpi-yellow"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                    <div class="kpi-value" id="kpi-renewal-count">-</div>
-                    <div class="kpi-label">Renewals Due (< 90 Days)</div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-                <div class="card-dashboard">
-                    <div class="kpi-icon kpi-green"><i class="fa-solid fa-building-columns"></i></div>
-                    <div class="kpi-value" id="kpi-bureau-count">-</div>
-                    <div class="kpi-label">Funding Bureaus Active</div>
+                <div class="flex items-center">
+                    <span class="text-sm text-gray-500" id="current-date"></span>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card-dashboard">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Renewal Timeline & Workload</h5>
-                        <select id="bureauFilter" class="form-select form-select-sm" style="width: 200px;" disabled>
-                            <option value="ALL">All Bureaus</option>
-                        </select>
-                    </div>
-                    <div class="chart-wrapper">
-                        <div id="timelineChart"></div>
-                    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div id="status-box" class="hidden p-4 rounded-md">
+            <div class="flex">
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium" id="status-title">Status</h3>
+                    <div class="mt-2 text-sm" id="status-message"></div>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card-dashboard">
-                    <h5 class="fw-bold mb-4">Contract Detail Register</h5>
-                    <table id="contractsTable" class="table table-hover w-100">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Acronym</th>
-                                <th>Contract #</th>
-                                <th>Title</th>
-                                <th>Vendor</th>
-                                <th>Funding Bureau</th>
-                                <th>End Date</th>
-                                <th>Value</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg border border-gray-100">
+                <div class="p-5">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Active Contracts</dt>
+                        <dd class="text-2xl font-semibold text-gray-900" id="kpi-total-contracts">-</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg border border-red-100">
+                <div class="p-5">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Value at Risk (< 90 Days)</dt>
+                        <dd class="text-2xl font-semibold text-red-600" id="kpi-value-risk">-</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg border border-orange-100">
+                <div class="p-5">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Urgent Renewals</dt>
+                        <dd class="text-2xl font-semibold text-gray-900" id="kpi-urgent-count">-</dd>
+                        <dd class="text-xs text-orange-600 font-bold mt-1">Due in < 3 Months</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg border border-green-100">
+                <div class="p-5">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Top Vendor</dt>
+                        <dd class="text-lg font-semibold text-gray-900 truncate" id="kpi-top-vendor">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 lg:col-span-2">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Renewal Timeline</h3>
+                <div class="chart-container-lg">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Funding by Bureau</h3>
+                <div class="chart-container">
+                    <canvas id="fundingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="data-grid" class="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">Contract Register</h3>
+            </div>
+            <div class="overflow-x-auto custom-scroll max-h-[600px]">
+                <table class="min-w-full divide-y divide-gray-200 relative">
+                    <thead class="bg-gray-50 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contract #</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bureau</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days Left</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="contracts-table-body">
+                        <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Upload a CSV file to see data.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
 
     <script>
-        /**
-         * Contract Renewal Dashboard Logic
-         * Handles CSV Parsing, Data Transformation, and Visualization Rendering.
-         */
+        // --- GLOBAL STATE ---
+        let charts = { timeline: null, funding: null };
+        const EXPECTED_HEADERS = [
+            'contract_number', 'contract_total', 'contract_end_date', 'contract_start_date', 
+            'vendor_name', 'funding_bureau'
+        ];
 
-        // Global State Management
-        const STATE = {
-            rawData:,
-            processedData:,
-            bureaus: new Set(),
-            table: null,
-            chart: null
+        // --- UTILITY: HELPERS ---
+        const formatCurrency = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+        
+        const cleanNumber = (val) => {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            // Remove $ , and spaces
+            const cleaned = val.toString().replace(/[^0-9.-]+/g,"");
+            return parseFloat(cleaned) || 0;
         };
 
-        // Utility: Currency Formatter
-        const formatCurrency = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        });
+        const parseDate = (val) => {
+            if (!val) return null;
+            const d = new Date(val);
+            if (isNaN(d.getTime())) return null; // Invalid date
+            return d;
+        };
 
-        // 1. Initialization & Event Listeners
-        $(document).ready(function() {
-            // Initialize empty table
-            STATE.table = $('#contractsTable').DataTable({
-                columns:,
-                columnDefs:, targets: 6 }  // Sort dates by days left integer
-                ],
-                order: [[8, 'asc']], // Default sort: Most urgent first
-                language: {
-                    emptyTable: "Please upload a CSV file to view contract data."
-                }
-            });
+        const getDaysRemaining = (endDateObj) => {
+            if(!endDateObj) return -9999;
+            const now = new Date();
+            const diffTime = endDateObj - now;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        };
 
-            // File Upload Handler
-            $('#csvInput').on('change', function(e) {
-                const file = e.target.files;
-                if (!file) return;
-                
-                // Show loading state could go here
-                parseCSV(file);
-            });
+        // --- 1. CSV HANDLING ---
+        document.getElementById('csv-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-            // Filter Handler
-            $('#bureauFilter').on('change', function() {
-                const selectedBureau = $(this).val();
-                filterDashboard(selectedBureau);
-            });
-        });
+            // UI Updates
+            document.getElementById('loading-spinner').style.display = 'block';
+            showStatus('blue', 'Processing...', 'Parsing CSV file. Please wait.');
 
-        // 2. Data Parsing (ETL)
-        function parseCSV(file) {
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
-                dynamicTyping: true, // Auto-convert numbers
+                transformHeader: (h) => h.trim(), // Remove spaces from headers
                 complete: function(results) {
-                    transformData(results.data);
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    
+                    if (results.errors.length > 0) {
+                        console.warn("CSV Errors:", results.errors);
+                    }
+
+                    if (results.data && results.data.length > 0) {
+                        validateAndProcess(results.data, results.meta.fields);
+                    } else {
+                        showStatus('red', 'Error', 'No data found in the CSV file.');
+                    }
                 },
                 error: function(err) {
-                    alert("Error parsing CSV: " + err.message);
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    showStatus('red', 'File Read Error', err.message);
                 }
             });
-        }
+        });
 
-        // 3. Data Transformation Logic
-        function transformData(data) {
-            const today = new Date();
-            STATE.processedData =;
-            STATE.bureaus.clear();
+        // --- 2. VALIDATION & TRANSFORMATION ---
+        function validateAndProcess(data, headers) {
+            console.log("Raw Headers Found:", headers);
+            
+            let validRows = [];
+            let skippedCount = 0;
 
             data.forEach(row => {
-                // Validation: Ensure active row
-                if (!row.contract_number) return;
-
-                // 3.1 Date Parsing
-                // Attempt to parse text dates. Works with ISO and standard US formats.
-                const start = new Date(row.contract_start_date);
-                const end = new Date(row.contract_end_date);
+                // We need at least a Contract Number and End Date
+                const cNum = row['contract_number'];
+                const cEnd = row['contract_end_date'];
                 
-                // Skip invalid dates
-                if (isNaN(start) |
-
-| isNaN(end)) return;
-
-                // 3.2 Financial Cleaning
-                // Handle "$1,000.00" strings if dynamicTyping failed
-                let total = row.contract_total;
-                if (typeof total === 'string') {
-                    total = parseFloat(total.replace(/[^0-9.-]+/g,""));
-                }
-                total = total |
-
-| 0;
-
-                // 3.3 Metric Calculation
-                const timeDiff = end.getTime() - today.getTime();
-                const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                
-                // 3.4 Urgency Classification
-                let urgency = 'GOOD';
-                let color = '#10b981'; // Green
-                
-                if (daysLeft < 0) {
-                    urgency = 'EXPIRED';
-                    color = '#9ca3af'; // Grey
-                } else if (daysLeft <= 30) {
-                    urgency = 'CRITICAL';
-                    color = '#ea0606'; // Red
-                } else if (daysLeft <= 90) {
-                    urgency = 'WARNING';
-                    color = '#f59e0b'; // Yellow
+                if (!cNum && !cEnd) {
+                    skippedCount++;
+                    return; 
                 }
 
-                // 3.5 Hierarchy Extraction
-                const bureau = row.funding_bureau |
+                const startDate = parseDate(row['contract_start_date']);
+                const endDate = parseDate(row['contract_end_date']);
+                const total = cleanNumber(row['contract_total']);
 
-| "Unassigned";
-                STATE.bureaus.add(bureau);
+                if (!endDate) {
+                    skippedCount++;
+                    return; 
+                }
 
-                // 3.6 Build Processed Object
-                STATE.processedData.push({
-                    raw: row,
-                    computed: {
-                        start: start,
-                        end: end,
-                        total: total,
-                        daysLeft: daysLeft,
-                        urgency: urgency,
-                        color: color,
-                        bureau: bureau
-                    }
+                validRows.push({
+                    number: cNum || 'Unknown',
+                    vendor: row['vendor_name'] || 'Unknown Vendor',
+                    bureau: row['funding_bureau'] || 'Unassigned',
+                    title: row['contract_title'] || '',
+                    acronym: row['contract_acronym'] || cNum,
+                    start: startDate || new Date(), // Fallback for start
+                    end: endDate,
+                    total: total,
+                    daysLeft: getDaysRemaining(endDate)
                 });
             });
 
-            populateFilter();
-            filterDashboard("ALL"); // Initial render
-        }
-
-        // 4. UI Rendering
-        function populateFilter() {
-            const select = $('#bureauFilter');
-            select.empty().append('<option value="ALL">All Bureaus</option>');
-            Array.from(STATE.bureaus).sort().forEach(b => {
-                select.append(`<option value="${b}">${b}</option>`);
-            });
-            select.prop('disabled', false);
-        }
-
-        function filterDashboard(bureau) {
-            // Filter Data
-            const subset = bureau === "ALL" 
-               ? STATE.processedData 
-                : STATE.processedData.filter(d => d.computed.bureau === bureau);
-
-            updateKPIs(subset);
-            renderTable(subset);
-            renderChart(subset);
-        }
-
-        function updateKPIs(data) {
-            const totalVal = data.reduce((acc, curr) => acc + curr.computed.total, 0);
-            
-            // Risk: Contracts expiring in next 90 days (excluding expired)
-            const riskSet = data.filter(d => d.computed.daysLeft >= 0 && d.computed.daysLeft <= 90);
-            const riskVal = riskSet.reduce((acc, curr) => acc + curr.computed.total, 0);
-            const riskCount = riskSet.length;
-
-            const bureauCount = new Set(data.map(d => d.computed.bureau)).size;
-
-            // Animate Numbers (simple text update)
-            $('#kpi-total-value').text(formatCurrency.format(totalVal));
-            $('#kpi-risk-value').text(formatCurrency.format(riskVal));
-            $('#kpi-renewal-count').text(riskCount);
-            $('#kpi-bureau-count').text(bureauCount);
-        }
-
-        function renderTable(data) {
-            STATE.table.clear();
-
-            const rows = data.map(item => {
-                const c = item.computed;
-                const r = item.raw;
-
-                // Badge Logic
-                let badgeClass = 'bg-good';
-                if (c.urgency === 'CRITICAL') badgeClass = 'bg-critical';
-                if (c.urgency === 'WARNING') badgeClass = 'bg-warning';
-                if (c.urgency === 'EXPIRED') badgeClass = 'bg-expired';
-
+            if (validRows.length === 0) {
+                showStatus('red', 'Data Error', `Parsed ${data.length} rows but found 0 valid entries. Check that your columns are named exactly: contract_end_date, contract_number, contract_total.`);
                 return;
-            });
+            }
 
-            STATE.table.rows.add(rows).draw();
+            // Success
+            showStatus('green', 'Success', `Loaded ${validRows.length} contracts. (Skipped ${skippedCount} invalid/empty rows).`);
+            
+            // Sort by Date
+            validRows.sort((a, b) => a.end - b.end);
+
+            updateDashboard(validRows);
         }
 
-        function renderChart(data) {
-            // Optimization: If too many rows, slice top 50 by urgency for chart clarity
-            // Or aggregate. For this dashboard, we will sort by end date and show top 40.
-            const chartData = [...data]
-               .sort((a, b) => a.computed.end - b.computed.end) // So earliest are at top? No, usually charts perform better with limited datasets.
-               .filter(d => d.computed.urgency!== 'EXPIRED') // Hide expired on chart for clarity
-               .slice(0, 50); // Performance Limit
+        // --- 3. UI UPDATER ---
+        function updateDashboard(data) {
+            // A. Metrics
+            const totalVal = data.reduce((acc, curr) => acc + curr.total, 0);
+            const riskData = data.filter(d => d.daysLeft >= 0 && d.daysLeft <= 90);
+            const riskVal = riskData.reduce((acc, curr) => acc + curr.total, 0);
+            
+            // Top Vendor
+            const vendorCounts = {};
+            data.forEach(d => { vendorCounts[d.vendor] = (vendorCounts[d.vendor] || 0) + d.total; });
+            const topVendorName = Object.keys(vendorCounts).reduce((a, b) => vendorCounts[a] > vendorCounts[b]? a : b, '-');
 
-            const seriesData = chartData.map(d => {
+            document.getElementById('kpi-total-contracts').innerText = data.length;
+            document.getElementById('kpi-value-risk').innerText = formatCurrency(riskVal);
+            document.getElementById('kpi-urgent-count').innerText = riskData.length;
+            document.getElementById('kpi-top-vendor').innerText = topVendorName;
+
+            // B. Populate Table
+            const tbody = document.getElementById('contracts-table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach(d => {
+                const tr = document.createElement('tr');
+                let statusBadge = '';
+                let rowClass = '';
+
+                if (d.daysLeft < 0) {
+                    statusBadge = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Expired</span>';
+                } else if (d.daysLeft <= 30) {
+                    statusBadge = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Critical</span>';
+                    rowClass = 'bg-red-50';
+                } else if (d.daysLeft <= 90) {
+                    statusBadge = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">Warning</span>';
+                } else {
+                    statusBadge = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Good</span>';
+                }
+
+                tr.className = rowClass? rowClass : 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${d.number}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.vendor}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.bureau}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.end.toISOString().split('T')[0]}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">${formatCurrency(d.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">${d.daysLeft} days</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // C. Charts
+            renderTimeline(data);
+            renderFunding(data);
+        }
+
+        // --- 4. CHARTS RENDERER ---
+        function renderTimeline(data) {
+            // Limit to top 20 urgent (non-expired) for readability
+            const chartData = data
+               .filter(d => d.daysLeft > -30) // Show recently expired and future
+               .slice(0, 20);
+
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            
+            if (charts.timeline) charts.timeline.destroy();
+
+            // Prepare for Chart.js
+            const labels = chartData.map(d => d.acronym || d.number);
+            const dataset = chartData.map(d => {
                 return {
-                    x: d.raw.contract_acronym |
-
-| d.raw.contract_number,
-                    y:,
-                    fillColor: d.computed.color,
-                    // Meta for tooltip
-                    goals: [
-                        { name: 'Value', value: d.computed.total, strokeHeight: 0 } // Hack to pass data
-                    ],
-                    meta: d // Custom property for tooltip
+                    x: [d.start.getTime(), d.end.getTime()],
+                    y: d.acronym || d.number,
+                    vendor: d.vendor
                 };
             });
 
-            const options = {
-                series:,
-                chart: {
-                    height: Math.max(500, chartData.length * 30), // Dynamic Height
-                    type: 'rangeBar',
-                    fontFamily: 'Segoe UI, sans-serif',
-                    toolbar: { show: true }
+            charts.timeline = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Contract Period',
+                        data: dataset,
+                        backgroundColor: (ctx) => {
+                             if (!ctx.raw) return '#e2e8f0';
+                             const end = ctx.raw.x[1];
+                             const now = Date.now();
+                             const diff = (end - now) / (1000 * 60 * 60 * 24);
+                             if (diff < 30) return '#ef4444'; // Red
+                             if (diff < 90) return '#f97316'; // Orange
+                             return '#3b82f6'; // Blue
+                        },
+                        borderRadius: 4,
+                        barPercentage: 0.5
+                    }]
                 },
-                plotOptions: {
-                    bar: {
-                        horizontal: true,
-                        barHeight: '60%',
-                        borderRadius: 4
-                    }
-                },
-                xaxis: {
-                    type: 'datetime',
-                    position: 'top' // Calendar on top is easier to read
-                },
-                grid: {
-                    xaxis: { lines: { show: true } },
-                    yaxis: { lines: { show: true } }
-                },
-                tooltip: {
-                    custom: function({series, seriesIndex, dataPointIndex, w}) {
-                        const d = w.config.series[seriesIndex].data[dataPointIndex].meta;
-                        const c = d.computed;
-                        const r = d.raw;
-                        
-                        return `
-                            <div class="apexcharts-tooltip-custom">
-                                <div class="tooltip-header">
-                                    ${r.contract_number}
-                                </div>
-                                <div class="tooltip-body">
-                                    <div class="tooltip-row">
-                                        <span class="tooltip-lbl">Vendor:</span>
-                                        <span class="tooltip-val">${r.vendor_name}</span>
-                                    </div>
-                                    <div class="tooltip-row">
-                                        <span class="tooltip-lbl">Value:</span>
-                                        <span class="tooltip-val text-success">${formatCurrency.format(c.total)}</span>
-                                    </div>
-                                    <div class="tooltip-row">
-                                        <span class="tooltip-lbl">Expires:</span>
-                                        <span class="tooltip-val text-warning">${c.end.toLocaleDateString()}</span>
-                                    </div>
-                                    <div class="tooltip-row">
-                                        <span class="tooltip-lbl">Status:</span>
-                                        <span class="tooltip-val">${c.daysLeft} Days Remaining</span>
-                                    </div>
-                                    <div class="tooltip-row" style="margin-top:8px; padding-top:8px; border-top:1px dashed #374151;">
-                                        <span class="tooltip-lbl">Bureau:</span>
-                                        <span class="tooltip-val">${c.bureau}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'top',
+                            min: Date.now() - (1000*60*60*24*30), // Start view 30 days ago
+                            ticks: {
+                                callback: (val) => new Date(val).toLocaleDateString('en-US', {month:'short', year:'2-digit'})
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const end = new Date(ctx.raw.x[1]).toLocaleDateString();
+                                    return `${ctx.raw.vendor}: Ends ${end}`;
+                                }
+                            }
+                        }
                     }
                 }
-            };
-
-            if (STATE.chart) {
-                STATE.chart.destroy();
-            }
-            
-            STATE.chart = new ApexCharts(document.querySelector("#timelineChart"), options);
-            STATE.chart.render();
+            });
         }
 
+        function renderFunding(data) {
+            // Aggregate
+            const bureauTotals = {};
+            data.forEach(d => { bureauTotals[d.bureau] = (bureauTotals[d.bureau] || 0) + d.total; });
+            
+            const labels = Object.keys(bureauTotals);
+            const values = Object.values(bureauTotals);
+
+            const ctx = document.getElementById('fundingChart').getContext('2d');
+            if (charts.funding) charts.funding.destroy();
+
+            charts.funding = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        function showStatus(color, title, message) {
+            const el = document.getElementById('status-box');
+            const titleEl = document.getElementById('status-title');
+            const msgEl = document.getElementById('status-message');
+            
+            el.className = `p-4 rounded-md mb-6 ${color === 'red'? 'bg-red-50 text-red-800' : (color === 'green'? 'bg-green-50 text-green-800' : 'bg-blue-50 text-blue-800')}`;
+            el.classList.remove('hidden');
+            
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+        }
+
+        // Set Date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString();
     </script>
 </body>
 </html>
